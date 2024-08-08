@@ -1,9 +1,19 @@
-use std::{env, fs, io::Write};
+use std::{env, fs, io::Write, time::Instant};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
+    let now = Instant::now();
+    if let Err(e) = execute().await {
+        eprintln!("Failed to execute, err={}", e);
+    }
+    println!("Time elapsed in execute() is: {:?}", now.elapsed());
+}
+
+async fn execute() -> Result<(), Box<dyn std::error::Error>> {
+    let mut more = env::args().nth(1).unwrap_or("".to_string());
+
     // parse conf.toml
-    let conf_path = env::args().nth(1).unwrap_or("conf.toml".to_string());
+    let conf_path = env::args().nth(2).unwrap_or("conf.toml".to_string());
     let conf_str = std::fs::read_to_string(conf_path)?;
     let conf = conf_str.parse::<toml::Value>()?;
 
@@ -15,11 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = reqwest::Client::new();
 
-    let now = chrono::Local::now();
-    println!("Start to fetch data at {}", now);
-
     let idx = "more";
-    let mut more = "".to_string();
     while more != "Null" {
         let builder = client
             .get(url)
@@ -47,13 +53,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or(&serde_json::Value::Null)
             .to_string();
     }
-
-    println!(
-        "It took {} seconds to fetch data",
-        chrono::Local::now()
-            .signed_duration_since(now)
-            .num_seconds()
-    );
-
     Ok(())
 }

@@ -21,4 +21,8 @@ Cargo.lock
 #.idea/
 
 # resutl files
-douban.game
+douban_game
+douban_game.bak
+
+# vscode
+.vscode/
