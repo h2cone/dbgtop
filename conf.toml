@@ -1,3 +1,5 @@
 [douban-game]
-search_url = "https://www.douban.com/j/ilmen/game/search"
-search_result_file = "douban_game"
+url = "https://www.douban.com/j/ilmen/game/search"
+more = ""
+sink_type = "file"
+sink_to = "douban_game"
