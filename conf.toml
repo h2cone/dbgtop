@@ -1,5 +1,6 @@
 [douban-game]
 url = "https://www.douban.com/j/ilmen/game/search"
 more = ""
-sink_type = "file"
+sink_type = "postgres"
 sink_to = "douban_game"
+db_url = "postgres://${PG_USERNAME}:${PG_PASSWORD}@localhost/indie"

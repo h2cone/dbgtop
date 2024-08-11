@@ -1,9 +1,6 @@
-use std::{
-    env,
-    fs::{self, File},
-    io::Write,
-    time::Instant,
-};
+use std::{env, time::Instant};
+
+use dbgtop::sink::{FileSink, PostgresSink, Sink};
 
 #[tokio::main]
 async fn main() {
@@ -22,7 +19,8 @@ async fn execute() -> Result<(), Box<dyn std::error::Error>> {
     let mut more = conf["more"].as_str().unwrap_or("").to_string();
     let sink_type: &str = conf["sink_type"].as_str().unwrap();
     let mut sink: Box<dyn Sink> = match sink_type {
-        "file" => Box::new(FileSink::new(&conf)),
+        "file" => Box::new(FileSink::open(&conf)?),
+        "postgres" => Box::new(PostgresSink::open(&conf).await?),
         _ => panic!("Unsupported sink type"),
     };
 
@@ -42,7 +40,7 @@ async fn execute() -> Result<(), Box<dyn std::error::Error>> {
         let resp = builder.send().await?;
         let body = resp.json::<serde_json::Value>().await?;
 
-        sink.consume(&body);
+        sink.consume(&body).await;
 
         more = body
             .get(idx)
@@ -52,36 +50,4 @@ async fn execute() -> Result<(), Box<dyn std::error::Error>> {
         println!("?more={}", more);
     }
     Ok(())
-}
-
-trait Sink {
-    fn consume(&mut self, data: &serde_json::Value);
-}
-
-struct FileSink {
-    file: File,
-}
-
-impl FileSink {
-    fn new(conf: &toml::Value) -> Self {
-        let path = conf["sink_to"].as_str().unwrap();
-
-        let file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)
-            .unwrap();
-
-        FileSink { file }
-    }
-}
-
-impl Sink for FileSink {
-    fn consume(&mut self, body: &serde_json::Value) {
-        if let Err(e) = serde_json::to_writer(&self.file, &body) {
-            eprintln!("Failed to write to file, err={}", e);
-        } else {
-            writeln!(self.file).unwrap();
-        }
-    }
 }
