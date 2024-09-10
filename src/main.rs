@@ -1,6 +1,7 @@
-use std::{env, time::Instant};
+mod sink;
 
-use dbgtop::sink::{FileSink, PostgresSink, Sink};
+use crate::sink::{FileSink, PostgresSink, Sink};
+use std::{env, time::Instant};
 
 #[tokio::main]
 async fn main() {
