@@ -15,7 +15,7 @@ async fn main() {
 async fn execute() -> Result<(), Box<dyn std::error::Error>> {
     let conf_path = env::args().nth(1).unwrap_or("conf.toml".to_string());
     let conf_str = std::fs::read_to_string(conf_path)?;
-    let conf = &conf_str.parse::<toml::Value>()?["douban-game"];
+    let conf = toml::from_str::<toml::Value>(&conf_str)?;
 
     let mut more = conf["more"].as_str().unwrap_or("").to_string();
     let sink_type: &str = conf["sink_type"].as_str().unwrap();
